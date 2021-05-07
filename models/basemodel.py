@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from database.database import DBConnection
-from exceptions.modelexceptions import FieldNotFountException
+from exceptions.modelexceptions import FieldNotFoundException, ValueNotFoundException, ResultNotFoundException
 
 
 class BaseModel(metaclass=ABCMeta):
@@ -24,7 +24,7 @@ class BaseModel(metaclass=ABCMeta):
         """
         for field in fields:
             if field not in self._fields:
-                raise FieldNotFountException(f"Column '{field}' not found in '{self._table_name}' table")
+                raise FieldNotFoundException(f"Column '{field}' not found in '{self._table_name}' table")
 
     def create(self, **kwargs):
         """
@@ -39,9 +39,9 @@ class BaseModel(metaclass=ABCMeta):
         self.__connection.cursor.execute(sql, values)
         self.__connection.conn.commit()
 
-    def get(self, **kwargs):
+    def filter(self, **kwargs) -> list:
         """
-        Select a record
+        Select records by given filters
         :param kwargs:
         :return: list of selected values
         """
@@ -53,6 +53,42 @@ class BaseModel(metaclass=ABCMeta):
         result = self.__connection.cursor.fetchall()
         columns = [desc[0] for desc in self.__connection.cursor.description]
         return [{columns[index]:column for index, column in enumerate(value)} for value in result]
+
+    def get(self, **kwargs) -> dict or None:
+        """
+        Select a record by given filters
+        :param kwargs:
+        :return: dict or None
+        """
+        self.__check_fields(*kwargs)
+        if not kwargs:
+            raise ValueNotFoundException("Filtering columns not found")
+        sql = f"SELECT * FROM {self._table_name} WHERE " + self.__get_fetched_string_for_where_statement(**kwargs)
+        self.__connection.cursor.execute(sql)
+        result = self.__connection.cursor.fetchone()
+        columns = [desc[0] for desc in self.__connection.cursor.description]
+        if result:
+            return [{columns[index]: value for index, value in enumerate(result)}][0]
+        return None
+
+    def update(self, where: dict, **updating):
+        res = self.get(**where)
+        if not res:
+            raise ResultNotFoundException("Requested entity not found")
+
+        sql = f"UPDATE {self._table_name} SET {self.__get_fetched_string_for_update_statement(**updating)} "
+        sql += f"WHERE {self.__get_fetched_string_for_where_statement(**where)}"
+        values = self.__get_converted_keys_and_values(**updating).get('values')
+        self.__connection.cursor.execute(sql, values)
+        self.__connection.conn.commit()
+
+    def delete(self, **where):
+        res = self.get(**where)
+        if not res:
+            raise ResultNotFoundException("Requested entity not found")
+        sql = f"DELETE FROM {self._table_name} WHERE {self.__get_fetched_string_for_where_statement(**where)}"
+        self.__connection.cursor.execute(sql)
+        self.__connection.conn.commit()
 
     @staticmethod
     def __get_converted_keys_and_values(**kwargs) -> dict:
@@ -71,3 +107,12 @@ class BaseModel(metaclass=ABCMeta):
         :return: str
         """
         return ' AND '.join([f"{key} = '{value}'" for key, value in kwargs.items()])
+
+    @staticmethod
+    def __get_fetched_string_for_update_statement(**kwargs) -> str:
+        """
+        Simple function to make the dict compatible with update statement key=value
+        :param kwargs: columns with values
+        :return: str
+        """
+        return ' , '.join([f"{key} = %s" for key, value in kwargs.items()])
