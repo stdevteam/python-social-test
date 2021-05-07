@@ -38,6 +38,10 @@ class BaseModel(metaclass=ABCMeta):
         sql = f"INSERT INTO {self._table_name} ({keys}) VALUES ({', '.join(['%s'] * len(values))})"
         self.__connection.cursor.execute(sql, values)
         self.__connection.conn.commit()
+        if self.__connection.cursor.rowcount == 1:
+            kwargs['id'] = self.__connection.cursor.lastrowid
+            return kwargs
+        return None
 
     def filter(self, **kwargs) -> list:
         """
@@ -81,6 +85,9 @@ class BaseModel(metaclass=ABCMeta):
         values = self.__get_converted_keys_and_values(**updating).get('values')
         self.__connection.cursor.execute(sql, values)
         self.__connection.conn.commit()
+        if self.__connection.cursor.rowcount == 1:
+            return updating
+        return None
 
     def delete(self, **where):
         res = self.get(**where)
