@@ -101,15 +101,14 @@ class BaseModel(metaclass=ABCMeta):
             return [{columns[index]: value for index, value in enumerate(result)}][0]
         return None
 
-    def count_and_group_by(self, group_by_column_name, where_in_values) -> int:
+    def count_and_group_by(self, group_by_column_name, where_in_values) -> list:
         """
         Select count
-        :param table_name: count given table name
         :param group_by_column_name: group by column
         :param where_in_values: values for filtering
         """
         self.__check_fields(group_by_column_name)
-        sql = f"SELECT COUNT({group_by_column_name}) count, {self._primary_key} FROM {self._table_name} " \
+        sql = f"SELECT COUNT({group_by_column_name}) count, {group_by_column_name} FROM {self._table_name} " \
               f"WHERE {group_by_column_name} in ({','.join(['%s'] * len(where_in_values))}) " \
               f"GROUP BY {group_by_column_name}"
         return self.__fetch_mysql_data(sql, where_in_values)

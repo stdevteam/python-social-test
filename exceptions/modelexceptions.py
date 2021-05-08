@@ -13,3 +13,6 @@ class ResultNotFoundException(Exception):
 class ArgumentException(Exception):
     """Raise when required arguments are not passed"""
 
+
+class ChoiceNotFound(Exception):
+    """Raise when given choice not found"""

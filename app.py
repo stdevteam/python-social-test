@@ -10,7 +10,7 @@ app = Flask(__name__)
 def post():
     if request.method == "GET":
         # TODO Add pagination
-        return jsonify(Post().count_and_group_by())
+        return jsonify(Post().get_posts_with_reactions_count())
     else:
         return jsonify(Post().create(**request.form))
 
