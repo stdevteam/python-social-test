@@ -2,6 +2,7 @@ import mysql.connector
 from settings.settings import DATABASE_SETTINGS
 
 
+# TODO integrate connection pooling
 class DBConnection(object):
     __instance = None
 
