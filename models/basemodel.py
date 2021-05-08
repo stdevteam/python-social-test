@@ -72,8 +72,7 @@ class BaseModel(metaclass=ABCMeta):
         :param values: list or tuple for where in statement
         """
         self.__check_fields(column_name)
-        f_strings = ','.join(['%s'] * len(values))
-        sql = f"SELECT * FROM {self._table_name} WHERE {column_name} IN ({f_strings})"
+        sql = f"SELECT * FROM {self._table_name} WHERE {column_name} IN ({','.join(['%s'] * len(values))})"
         return self.__fetch_mysql_data(sql, values)
 
     def __fetch_mysql_data(self, sql, values=None) -> list:
@@ -102,6 +101,19 @@ class BaseModel(metaclass=ABCMeta):
             return [{columns[index]: value for index, value in enumerate(result)}][0]
         return None
 
+    def count_and_group_by(self, group_by_column_name, where_in_values) -> int:
+        """
+        Select count
+        :param table_name: count given table name
+        :param group_by_column_name: group by column
+        :param where_in_values: values for filtering
+        """
+        self.__check_fields(group_by_column_name)
+        sql = f"SELECT COUNT({group_by_column_name}) count, {self._primary_key} FROM {self._table_name} " \
+              f"WHERE {group_by_column_name} in ({','.join(['%s'] * len(where_in_values))}) " \
+              f"GROUP BY {group_by_column_name}"
+        return self.__fetch_mysql_data(sql, where_in_values)
+
     def update(self, where: dict, **updating) -> dict or None:
         """
         Update records by given filters
@@ -112,8 +124,8 @@ class BaseModel(metaclass=ABCMeta):
         if not res:
             raise ResultNotFoundException("Requested entity not found")
 
-        sql = f"UPDATE {self._table_name} SET {self.__get_fetched_string_for_update_statement(**updating)} "
-        sql += f"WHERE {self.__get_fetched_string_for_where_statement(**where)}"
+        sql = f"UPDATE {self._table_name} SET {self.__get_fetched_string_for_update_statement(**updating)} " \
+              f"WHERE {self.__get_fetched_string_for_where_statement(**where)}"
         values = self.__get_converted_keys_and_values(**updating).get('values')
         self.__connection.cursor.execute(sql, values)
         self.__connection.conn.commit()
