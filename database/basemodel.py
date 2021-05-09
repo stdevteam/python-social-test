@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from database.database import DBConnection
-from exceptions.modelexceptions import FieldNotFoundException, ValueNotFoundException, ResultNotFoundException, \
-    ArgumentException
+from exceptions.modelexceptions import (FieldNotFoundException, ValueNotFoundException, ResultNotFoundException)
 
 
 class BaseModel(metaclass=ABCMeta):
@@ -129,6 +128,7 @@ class BaseModel(metaclass=ABCMeta):
         self.__connection.cursor.execute(sql, values)
         self.__connection.conn.commit()
         if self.__connection.cursor.rowcount == 1:
+            # TODO return the full updated row
             return updating
         return None
 

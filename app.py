@@ -1,19 +1,11 @@
-from models.postmodel import Post
+from flask import Flask
+
 from settings import settings
-from flask import Flask, request, jsonify
+from apps.post.app import post_app
 
 
 app = Flask(__name__)
-
-
-@app.route('/posts/', methods=["GET", "POST"])
-def post():
-    if request.method == "GET":
-        # TODO Add pagination
-        return jsonify(Post().get_posts_with_reactions_count())
-    else:
-        return jsonify(Post().create(**request.form))
-
+app.register_blueprint(post_app)
 
 if __name__ == "__main__":
     app.run(debug=settings.DEBUG)
