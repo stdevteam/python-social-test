@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from apps.post.models import Post
+from apps.post.models import Post, Reaction
 
 post_app = Blueprint('post_app', __name__)
 
@@ -18,10 +18,19 @@ def post(id):
             Post().delete(id=id)
             return jsonify({})
         except Exception as e:
-            return jsonify({'error': e})
+            return jsonify({'error': str(e)})
     elif request.method == "PUT":
         try:
             return jsonify(Post().update({'id': id}, **request.form))
         except Exception as e:
-            return jsonify({'error': e})
+            return jsonify({'error': str(e)})
 
+
+@post_app.route('/react/<int:post_id>/', methods=["POST"])
+def react(post_id):
+    try:
+        data = {'post_id': post_id}
+        data.update(request.form)
+        return jsonify(Reaction().create(**data))
+    except Exception as e:
+        return jsonify({'error': str(e)})

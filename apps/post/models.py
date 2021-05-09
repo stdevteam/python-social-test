@@ -43,6 +43,6 @@ class Reaction(BaseModel):
         return self._foreign_key
 
     def create(self, **kwargs):
-        if kwargs.get(self._enum_field) and kwargs.get(self._enum_field) not in self.REACTION_CHOICES:
+        if kwargs.get(self._enum_field) and int(kwargs.get(self._enum_field)) not in self.REACTION_CHOICES:
             raise ChoiceNotFound(f"'{kwargs.get(self._enum_field)}' is not a valid choice")
         return super().create(**kwargs)
