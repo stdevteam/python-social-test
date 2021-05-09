@@ -26,11 +26,9 @@ def post(id):
             return jsonify({'error': str(e)})
 
 
-@post_app.route('/react/<int:post_id>/', methods=["POST"])
-def react(post_id):
+@post_app.route('/react/', methods=["POST"])
+def react():
     try:
-        data = {'post_id': post_id}
-        data.update(request.form)
-        return jsonify(Reaction().create(**data))
+        return jsonify(Reaction().create(**request.form))
     except Exception as e:
         return jsonify({'error': str(e)})
