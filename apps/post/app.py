@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from apps.post.models import Post, Reaction
+from apps.post.models import Post, Reaction, Comment
 
 post_app = Blueprint('post_app', __name__)
 
@@ -30,5 +30,13 @@ def post(id):
 def react():
     try:
         return jsonify(Reaction().create(**request.form))
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+
+@post_app.route('/comment/', methods=["POST"])
+def comment():
+    try:
+        return jsonify(Comment().create(**request.form))
     except Exception as e:
         return jsonify({'error': str(e)})

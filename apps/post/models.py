@@ -46,3 +46,15 @@ class Reaction(BaseModel):
         if kwargs.get(self._enum_field) and int(kwargs.get(self._enum_field)) not in self.REACTION_CHOICES:
             raise ChoiceNotFound(f"'{kwargs.get(self._enum_field)}' is not a valid choice")
         return super().create(**kwargs)
+
+
+class Comment(BaseModel):
+    _table_name = 'comments'
+    _primary_key = 'id'
+    _foreign_key = 'post_id'
+    _fields = (_primary_key, _foreign_key, 'comment')
+
+    @property
+    def foreign_key(self) -> str:
+        return self._foreign_key
+
