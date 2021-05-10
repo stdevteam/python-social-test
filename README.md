@@ -41,4 +41,5 @@ Configure .env file
     An example of .env is named '.env.example'
     
 Running 
-    $ flask run
+
+    $ flask run -p 5000
