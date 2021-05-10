@@ -19,7 +19,7 @@ def post(id):
     elif request.method == "DELETE":
         try:
             Post().delete(id=id)
-            return jsonify({})
+            return jsonify(True)
         except Exception as e:
             return jsonify({'error': str(e)}), 422
     elif request.method == "PUT":
